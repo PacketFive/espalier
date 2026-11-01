@@ -7,13 +7,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pyrixos-espalier"
 dynamic = ["version"]
-description = "Data models validated from type annotations, a pure-Python subset of the pydantic 2 API"
+description = "Data models validated from type annotations, a pure-Python subset of the pydantic 2 API, with YAML and XML"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "GPL-2.0-only"
 license-files = ["LICENSE"]
 authors = [{ name = "PacketFive" }]
-keywords = ["validation", "models", "pydantic", "serialization", "json", "pure-python"]
+keywords = ["validation", "models", "pydantic", "serialization", "json", "yaml", "xml", "pure-python"]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",

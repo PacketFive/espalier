@@ -5,7 +5,8 @@ Espalier implements the part of the pydantic 2 API that typed
 configuration and wire formats need: BaseModel, Field, ConfigDict,
 validators, serializers, computed fields and TypeAdapter. Code written
 against that part runs with ``from espalier import ...`` in place of
-``from pydantic import ...``.
+``from pydantic import ...``. Models and adapters also read and write
+YAML and XML.
 """
 
 from .alias_generators import to_camel, to_pascal, to_snake
@@ -26,7 +27,7 @@ from .functional import (
 from .main import BaseModel
 from .type_adapter import TypeAdapter
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 __all__ = [
     "AfterValidator",

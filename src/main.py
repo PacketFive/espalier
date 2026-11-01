@@ -11,7 +11,7 @@ import typing
 from collections.abc import Callable, Iterator
 from typing import Any, ClassVar, Literal, Self, dataclass_transform
 
-from . import _validators
+from . import _validators, _xml, _yaml
 from ._serialize import Mode, dump, serialize, to_json
 from .config import ConfigDict
 from .errors import Invalid, ValidationError, from_exception, invalid
@@ -318,6 +318,20 @@ def _load_json(data: str | bytes | bytearray) -> Any:
         raise invalid("json_invalid", f"Invalid JSON: {error}", data) from None
 
 
+def _load_yaml(data: str | bytes | bytearray) -> Any:
+    try:
+        return _yaml.loads(data)
+    except (ValueError, UnicodeDecodeError) as error:
+        raise invalid("yaml_invalid", f"Invalid YAML: {error}", data) from None
+
+
+def _load_xml(data: str | bytes | bytearray, tp: Any) -> Any:
+    try:
+        return _xml.loads(data, tp)
+    except ValueError as error:
+        raise invalid("xml_invalid", f"Invalid XML: {error}", data) from None
+
+
 class BaseModel(metaclass=ModelMeta):
     """A class whose fields are its annotations, checked when an instance is made.
 
@@ -368,6 +382,32 @@ class BaseModel(metaclass=ModelMeta):
         for an enum or a datetime, even when the model is strict.
         """
         return _public(cls.__name__, lambda: _validate(cls, _load_json(json_data), "json", strict))
+
+    @classmethod
+    def model_validate_yaml(
+        cls, yaml_data: str | bytes | bytearray, *, strict: bool | None = None, context: Any = None
+    ) -> Self:
+        """Return an instance validated from a YAML document.
+
+        The document is read as model_validate_json reads JSON, so the
+        same values are accepted. See the README for the part of YAML
+        that is read.
+        """
+        return _public(cls.__name__, lambda: _validate(cls, _load_yaml(yaml_data), "json", strict))
+
+    @classmethod
+    def model_validate_xml(
+        cls, xml_data: str | bytes | bytearray, *, strict: bool | None = None, context: Any = None
+    ) -> Self:
+        """Return an instance validated from an XML document, as model_dump_xml writes it.
+
+        The types of the fields say how to read each element, so text
+        becomes a number where a field is a number. The name of the
+        root element is not checked.
+        """
+        return _public(
+            cls.__name__, lambda: _validate(cls, _load_xml(xml_data, cls), "json", strict)
+        )
 
     @classmethod
     def model_construct(cls, _fields_set: set[str] | None = None, **values: Any) -> Self:
@@ -468,6 +508,36 @@ class BaseModel(metaclass=ModelMeta):
         """Return model_dump in ``json`` mode as JSON text, compact unless ``indent`` is given."""
         data = self.__espalier_dump__("json", by_alias, include, exclude, exclude_none)
         return to_json(data, indent)
+
+    def model_dump_yaml(
+        self,
+        *,
+        include: set[str] | None = None,
+        exclude: set[str] | None = None,
+        by_alias: bool | None = None,
+        exclude_none: bool = False,
+    ) -> str:
+        """Return model_dump in ``json`` mode as a YAML document in block style."""
+        data = self.__espalier_dump__("json", by_alias, include, exclude, exclude_none)
+        return _yaml.dumps(data)
+
+    def model_dump_xml(
+        self,
+        *,
+        root: str | None = None,
+        indent: int | None = None,
+        include: set[str] | None = None,
+        exclude: set[str] | None = None,
+        by_alias: bool | None = None,
+        exclude_none: bool = False,
+    ) -> str:
+        """Return model_dump in ``json`` mode as XML, on one line unless ``indent`` is given.
+
+        The root element is named ``root``, or after the class. Each
+        field is a child element; see the README for the whole layout.
+        """
+        data = self.__espalier_dump__("json", by_alias, include, exclude, exclude_none)
+        return _xml.dumps(data, root or type(self).__name__, indent)
 
     def model_copy(self, *, update: dict[str, Any] | None = None, deep: bool = False) -> Self:
         """Return a copy with the fields in ``update`` replaced, without validating them.

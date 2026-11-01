@@ -5,12 +5,12 @@ from __future__ import annotations
 
 from typing import Any, overload
 
-from . import _validators
+from . import _validators, _xml, _yaml
 from ._serialize import Mode, serialize, to_json
 from .config import ConfigDict
 from .errors import ValidationError
 from .functional import ValidationInfo
-from .main import _load_json, _public
+from .main import _load_json, _load_xml, _load_yaml, _public
 
 
 class TypeAdapter[T]:
@@ -51,6 +51,16 @@ class TypeAdapter[T]:
         """Return the value of the JSON text ``data`` validated as the type."""
         return _public(self._title, lambda: self._check(_load_json(data), "json", strict))
 
+    def validate_yaml(self, data: str | bytes | bytearray, *, strict: bool | None = None) -> T:
+        """Return the value of the YAML document ``data`` validated as the type."""
+        return _public(self._title, lambda: self._check(_load_yaml(data), "json", strict))
+
+    def validate_xml(self, data: str | bytes | bytearray, *, strict: bool | None = None) -> T:
+        """Return the value of the XML document ``data``, read and validated as the type."""
+        return _public(
+            self._title, lambda: self._check(_load_xml(data, self._type), "json", strict)
+        )
+
     def dump_python(
         self,
         value: T,
@@ -73,6 +83,33 @@ class TypeAdapter[T]:
         """Return ``value`` as UTF-8 JSON, compact unless ``indent`` is given."""
         data = serialize(self._serializer, value, "json", by_alias, exclude_none)
         return to_json(data, indent).encode()
+
+    def dump_yaml(
+        self,
+        value: T,
+        *,
+        by_alias: bool | None = None,
+        exclude_none: bool = False,
+    ) -> bytes:
+        """Return ``value`` as a UTF-8 YAML document in block style."""
+        data = serialize(self._serializer, value, "json", by_alias, exclude_none)
+        return _yaml.dumps(data).encode()
+
+    def dump_xml(
+        self,
+        value: T,
+        *,
+        root: str = "value",
+        indent: int | None = None,
+        by_alias: bool | None = None,
+        exclude_none: bool = False,
+    ) -> bytes:
+        """Return ``value`` as UTF-8 XML under the root element ``root``.
+
+        See BaseModel.model_dump_xml for the layout.
+        """
+        data = serialize(self._serializer, value, "json", by_alias, exclude_none)
+        return _xml.dumps(data, root, indent).encode()
 
 
 __all__ = ["TypeAdapter", "ValidationError"]
