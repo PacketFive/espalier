@@ -1,0 +1,89 @@
+# SPDX-License-Identifier: GPL-2.0
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyrixos-espalier"
+dynamic = ["version"]
+description = "Data models validated from type annotations, a pure-Python subset of the pydantic 2 API"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "GPL-2.0-only"
+license-files = ["LICENSE"]
+authors = [{ name = "PacketFive" }]
+keywords = ["validation", "models", "pydantic", "serialization", "json", "pure-python"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Libraries",
+  "Typing :: Typed",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/PacketFive/espalier"
+Source = "https://github.com/PacketFive/espalier"
+Issues = "https://github.com/PacketFive/espalier/issues"
+
+[dependency-groups]
+# Everything the quality gates need, installed with "pip install --group dev"
+# (pip 25.1 or later).
+dev = [
+  "pybootstrap @ git+https://github.com/packetfive/pybootstrap.git",
+  "ruff>=0.4",
+  "pyright>=1.1",
+  "pytest>=8",
+  "pytest-cov>=5",
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "espalier.__version__" }
+
+# The repository's src directory is the espalier package itself.
+[tool.setuptools]
+packages = ["espalier"]
+package-dir = { espalier = "src" }
+
+# PEP 561 marker: the package ships its own type hints.
+[tool.setuptools.package-data]
+espalier = ["py.typed"]
+
+# Quality gates, run with 'pybootstrap check'.
+[tool.pybootstrap]
+gates = ["format", "lint", "typecheck", "test"]
+coverage-min = 85
+coverage-package = "espalier"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "D", "S"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "D"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["espalier"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+include = ["src", "tests"]
+reportMissingImports = "error"
+reportMissingTypeStubs = "none"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov-report=term-missing --import-mode=importlib"
