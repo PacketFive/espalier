@@ -36,7 +36,7 @@ Issues = "https://github.com/PacketFive/espalier/issues"
 # Everything the quality gates need, installed with "pip install --group dev"
 # (pip 25.1 or later).
 dev = [
-  "pybootstrap @ git+https://github.com/packetfive/pybootstrap.git",
+  "coldframe>=0.1",
   "ruff>=0.4",
   "pyright>=1.1",
   "pytest>=8",
@@ -55,8 +55,8 @@ package-dir = { espalier = "src" }
 [tool.setuptools.package-data]
 espalier = ["py.typed"]
 
-# Quality gates, run with 'pybootstrap check'.
-[tool.pybootstrap]
+# Quality gates, run with 'coldframe check'.
+[tool.coldframe]
 gates = ["format", "lint", "typecheck", "test"]
 coverage-min = 85
 coverage-package = "espalier"

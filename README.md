@@ -190,7 +190,7 @@ that overrides `__init__` is validated by its outer model without it.
 ```sh
 pip install --group dev
 pip install -e .
-pybootstrap check
+coldframe check
 ```
 
 The tests record the types and messages pydantic gives for the same
